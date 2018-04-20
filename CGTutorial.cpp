@@ -167,7 +167,38 @@ void sendMVP()
 	// Send our transformation to the currently bound shader, 
 	// in the "MVP" uniform, konstant fuer alle Eckpunkte
 	glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+#ifdef UEBUNG6
+	glUniformMatrix4fv(glGetUniformLocation(programID, "M"), 1, GL_FALSE, &Model[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(programID, "V"), 1, GL_FALSE, &View[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(programID, "P"), 1, GL_FALSE, &Projection[0][0]);
+#endif
 }
+
+#ifdef UEBUNG5
+#include "objloader.hpp"
+#endif
+#ifdef UEBUNG7
+#include "texture.hpp"
+#endif
+#ifdef UEBUNG9
+void drawCS()
+{
+	glm::mat4 Save = Model;
+	Model = glm::scale(Save, glm::vec3(2.0, 0.01, 0.01));
+	sendMVP();
+	drawWireCube();
+#ifdef UEBUNG10
+	Model = glm::scale(Save, glm::vec3(0.01, 2.0, 0.01));
+	sendMVP();
+	drawWireCube();
+
+	Model = glm::scale(Save, glm::vec3(0.01, 0.01, 2.0));
+	sendMVP();
+	drawWireCube();
+#endif
+	Model = Save;
+}
+#endif
 
 int main(void)
 {
@@ -219,15 +250,80 @@ int main(void)
 	glDepthFunc(GL_LESS);
 #endif
 
+#ifdef UEBUNG6
+	programID = LoadShaders("StandardShading.vertexshader", "StandardShading.fragmentshader");
+#else
 	// Create and compile our GLSL program from the shaders
 	programID = LoadShaders("TransformVertexShader.vertexshader", "ColorFragmentShader.fragmentshader");
+#endif
 
 	// Shader auch benutzen !
 	glUseProgram(programID);
 
+#ifdef UEBUNG5
+	std::vector<glm::vec3> vertices;
+	std::vector<glm::vec2> uvs;
+	std::vector<glm::vec3> normals;
+
+	//befuellen der container
+	bool res = loadOBJ("teapot.obj", vertices, uvs, normals);
+
+	GLuint VertexArrayIDTeapot;
+	glGenVertexArrays(1, &VertexArrayIDTeapot);
+	glBindVertexArray(VertexArrayIDTeapot);
+
+	GLuint vertexBuffer;
+	glGenBuffers(1, &vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		(void*)0);
+
+
+	#ifdef UEBUNG6
+		GLuint normalbuffer;
+	glGenBuffers(1, &normalbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2,
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		(void*)0);
+	#endif
+#ifdef UEBUNG7
+
+
+	GLuint Texture = loadBMP_custom("mandrill.bmp");
+
+	GLuint textureBuffer;
+	glGenBuffers(1, &textureBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, textureBuffer);
+	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1,
+		2,
+		GL_FLOAT,
+		GL_FALSE,
+		0,
+		(void*)0);
+
+#endif
+#endif
+
 	// Eventloop
 	while (!glfwWindowShouldClose(window))
 	{
+
 #ifdef UEBUNG4
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
@@ -246,25 +342,62 @@ int main(void)
 		
 		// Model matrix : an identity matrix (model will be at the origin)
 		Model = glm::mat4(1.0f);
+
 #ifdef UEBUNG1
-	#ifdef UEBUNG2
-		#ifdef UEBUNG3
-			Model = glm::rotate(Model, anglex, glm::vec3(1.0, 0.0, 0.0));
-			Model = glm::rotate(Model, angley, glm::vec3(0.0, 1.0, 0.0));
-			Model = glm::rotate(Model, anglez, glm::vec3(0.0, 0.0, 1.0));
-		#else
-	Model = glm::rotate(Model, angle, glm::vec3(0.0, 1.0, 0.0));
-	#endif
-Model = glm::rotate(Model, 30.0f, glm::vec3(0.0,1.0,0.0));
+#ifdef UEBUNG2
+#ifdef UEBUNG3
+		Model = glm::rotate(Model, anglex, glm::vec3(1.0, 0.0, 0.0));
+		Model = glm::rotate(Model, angley, glm::vec3(0.0, 1.0, 0.0));
+		Model = glm::rotate(Model, anglez, glm::vec3(0.0, 0.0, 1.0));
+#else
+		Model = glm::rotate(Model, angle, glm::vec3(0.0, 1.0, 0.0));
 #endif
+		Model = glm::rotate(Model, 30.0f, glm::vec3(0.0,1.0,0.0));
+#endif
+#endif
+#ifdef UEBUNG8
+		glm::mat4 Save = Model;
+		Model = glm::translate(Model, glm::vec3(1.5, 0, 0));
 #endif
 
 
+#ifdef UEBUNG5
+		Model = glm::scale(Model, glm::vec3(1.0 / 1000, 1.0 / 1000, 1.0 / 1000));
+#endif
 		sendMVP();
+#ifdef UEBUNG6
+		glm::vec3 lightPos = glm::vec3(4, 4, -4);
+		glUniform3f(glGetUniformLocation(programID, "LightPosition_worldspace"), lightPos.x, lightPos.y, lightPos.z);
+
+#endif
+#ifdef UEBUNG7
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Texture);
+
+		glUniform1i(glGetUniformLocation(programID, "myTextureSample"), 0);
+#endif
+#ifdef UEBUNG5
+		glBindVertexArray(VertexArrayIDTeapot);
+		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+#else
+
+//Wuerfel darstellen
 #ifdef UEBUNG4
 		drawCube();		
 #else
 		drawWireCube();
+#endif
+#endif
+
+#ifdef UEBUNG8
+		Model = Save;
+		Model = glm::scale(Model, glm::vec3(0.5, 0.5, 0.5));
+
+		sendMVP();
+		drawSphere(10, 10);
+#endif
+#ifdef UEBUNG9
+		drawCS();
 #endif
 		
 
@@ -274,6 +407,15 @@ Model = glm::rotate(Model, 30.0f, glm::vec3(0.0,1.0,0.0));
 		// Poll for and process events 
         glfwPollEvents();
 	} 
+#ifdef UEBUNG5
+		glDeleteBuffers(1, &vertexBuffer);
+#ifdef UEBUNG6
+		glDeleteBuffers(1, &normalbuffer);
+#ifdef UEBUNG7
+		glDeleteBuffers(1, &textureBuffer);
+#endif
+#endif
+#endif
 
 	glDeleteProgram(programID);
 
@@ -281,4 +423,3 @@ Model = glm::rotate(Model, 30.0f, glm::vec3(0.0,1.0,0.0));
 	glfwTerminate();
 	return 0;
 }
-
