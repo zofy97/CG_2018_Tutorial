@@ -114,15 +114,21 @@ void error_callback(int error, const char* description)
 	fputs(description, stderr);
 }
 #ifdef UEBUNG2
-	#ifdef UEBUNG3
-		float anglex = 0.0;
-		float angley = 0.0;
-		float anglez = 0.0;
-	#else
+#ifdef UEBUNG3
+	float anglex = 0.0;
+	float angley = 0.0;
+	float anglez = 0.0;
+#else
 	float angle = 0.0;
 #endif
 #endif
-
+#ifdef UEBUNG13
+	float angle0 = 0.0;
+	float angle1 = 0.0;
+	float angle2 = 0.0;
+	float angle3 = 0.0;
+#endif
+	
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	switch (key)
@@ -131,27 +137,39 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glfwSetWindowShouldClose(window, GL_TRUE);
 		break;
 #ifdef UEBUNG2
-	#ifdef UEBUNG3
-		case GLFW_KEY_X:
-			anglex += 5.0;
-			break;
-		case GLFW_KEY_Y:
-			angley += 5.0;
-			break;
-		case GLFW_KEY_Z:
-			anglez += 5.0;
-			break;
+#ifdef UEBUNG3
+	case GLFW_KEY_X:
+		anglex += 5.0;
+		break;
+	case GLFW_KEY_Y:
+		angley += 5.0;
+		break;
+	case GLFW_KEY_Z:
+		anglez += 5.0;
+		break;
 #else
-		case GLFW_KEY_R:
-			angle += 5.0;
-			break;
-	#endif
+	case GLFW_KEY_R:
+		angle += 5.0;
+		break;
+#endif
+#ifdef UEBUNG13
+	case GLFW_KEY_A:
+		angle0 += 5.0;
+		break;
+	case GLFW_KEY_B:
+		angle1 += 5.0;
+		break;
+	case GLFW_KEY_C:
+		angle2 += 5.0;
+		break;
+	case GLFW_KEY_D:
+		angle3 += 5.0;
+#endif
 #endif
 	default:
 		break;
 	}
 }
-
 
 // Diese Drei Matrizen global (Singleton-Muster), damit sie jederzeit modifiziert und
 // an die Grafikkarte geschickt werden koennen
@@ -196,6 +214,18 @@ void drawCS()
 	sendMVP();
 	drawWireCube();
 #endif
+	Model = Save;
+}
+#endif
+
+#ifdef UEBUNG11
+void drawSeg(float height)
+{
+	glm::mat4 Save = Model;
+	Model = glm::translate(Model, glm::vec3(0, height / 2, 0));
+	Model = glm::scale(Model, glm::vec3(height / 6, height / 2, height / 6));
+	sendMVP();
+	drawSphere(10, 10);
 	Model = Save;
 }
 #endif
@@ -286,8 +316,8 @@ int main(void)
 		(void*)0);
 
 
-	#ifdef UEBUNG6
-		GLuint normalbuffer;
+#ifdef UEBUNG6
+	GLuint normalbuffer;
 	glGenBuffers(1, &normalbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
 	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
@@ -298,10 +328,8 @@ int main(void)
 		GL_FALSE,
 		0,
 		(void*)0);
-	#endif
+#endif
 #ifdef UEBUNG7
-
-
 	GLuint Texture = loadBMP_custom("mandrill.bmp");
 
 	GLuint textureBuffer;
@@ -316,7 +344,6 @@ int main(void)
 		GL_FALSE,
 		0,
 		(void*)0);
-
 #endif
 #endif
 
@@ -360,7 +387,6 @@ int main(void)
 		Model = glm::translate(Model, glm::vec3(1.5, 0, 0));
 #endif
 
-
 #ifdef UEBUNG5
 		Model = glm::scale(Model, glm::vec3(1.0 / 1000, 1.0 / 1000, 1.0 / 1000));
 #endif
@@ -392,15 +418,31 @@ int main(void)
 #ifdef UEBUNG8
 		Model = Save;
 		Model = glm::scale(Model, glm::vec3(0.5, 0.5, 0.5));
-
+#ifdef UEBUNG11
+		Model = glm::rotate(Model, angle0, glm::vec3(0.0, 0.0, 1.0));
+		Model = glm::rotate(Model, angle1, glm::vec3(0.0, 1.0, 0.0));
+		drawSeg(1.0);
+#ifdef UEBUNG12
+		Model = glm::translate(Model, glm::vec3(0, 1.0, 0));
+		Model = glm::rotate(Model, angle2, glm::vec3(0.0, 0.0, 1.0));
+		drawSeg(0.8);
+		Model = glm::translate(Model, glm::vec3(0, 0.8, 0));
+#ifdef UEBUNG13
+		Model = glm::rotate(Model, angle3, glm::vec3(0.0, 0.0, 1.0));
+#endif
+		drawSeg(0.6);
+		Model = Save;
+#endif
+#else
 		sendMVP();
 		drawSphere(10, 10);
 #endif
+#endif
+
 #ifdef UEBUNG9
 		drawCS();
 #endif
 		
-
 		// Swap buffers
 		glfwSwapBuffers(window);
 
