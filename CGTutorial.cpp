@@ -315,7 +315,6 @@ int main(void)
 		0,
 		(void*)0);
 
-
 #ifdef UEBUNG6
 	GLuint normalbuffer;
 	glGenBuffers(1, &normalbuffer);
@@ -346,7 +345,9 @@ int main(void)
 		(void*)0);
 #endif
 #endif
-
+#ifdef UEBUNG14
+	glm::mat4 lightTraf(1.0f);
+#endif
 	// Eventloop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -392,9 +393,12 @@ int main(void)
 #endif
 		sendMVP();
 #ifdef UEBUNG6
+#ifdef UEBUNG14
+		glm::vec4 lightPos = lightTraf * glm::vec4(0, 0, 0, 1);
+#else
 		glm::vec3 lightPos = glm::vec3(4, 4, -4);
+#endif
 		glUniform3f(glGetUniformLocation(programID, "LightPosition_worldspace"), lightPos.x, lightPos.y, lightPos.z);
-
 #endif
 #ifdef UEBUNG7
 		glActiveTexture(GL_TEXTURE0);
@@ -431,6 +435,9 @@ int main(void)
 		Model = glm::rotate(Model, angle3, glm::vec3(0.0, 0.0, 1.0));
 #endif
 		drawSeg(0.6);
+#ifdef UEBUNG14
+		lightTraf = glm::translate(Model, glm::vec3(0, 0.6, 0));
+#endif
 		Model = Save;
 #endif
 #else
@@ -442,7 +449,6 @@ int main(void)
 #ifdef UEBUNG9
 		drawCS();
 #endif
-		
 		// Swap buffers
 		glfwSwapBuffers(window);
 
