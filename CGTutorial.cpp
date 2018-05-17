@@ -14,7 +14,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
 
-// Achtung, die OpenGL-Tutorials nutzen glfw 2.7, glfw kommt mit einem ver�nderten API schon in der Version 3 
+// Achtung, die OpenGL-Tutorials nutzen glfw 2.7, glfw kommt mit einem veränderten API schon in der Version 3 
 
 // Befindet sich bei den OpenGL-Tutorials unter "common"
 #include "shader.hpp"
@@ -22,90 +22,90 @@ using namespace glm;
 // Wuerfel und Kugel
 #include "objects.hpp"
 
-// Erkl�ren ObenGL-Statemachine, lowlevel
-// Version 1: seit 1992, elegantes API f�r die Plattformunabh�gige 3D-Programmierung 
-// Version 2: seit 2002, Erg�nzung durch Shader-Programme, die auf Grafikkarte laufen
+// Erklären ObenGL-Statemachine, lowlevel
+// Version 1: seit 1992, elegantes API für die Plattformunabhägige 3D-Programmierung 
+// Version 2: seit 2002, Ergänzung durch Shader-Programme, die auf Grafikkarte laufen
 // Version 3: seit 2008, Fixedfunction-Pipeline nur noch als Compability-Extension
-// Version 4: seit 2010 noch kaum unterst�tzt
+// Version 4: seit 2010 noch kaum unterstützt
 // Wir setzen nun auf Version 3, schwieriger zu erlernen als Version 1
-// glm-Bibliothek f�r Matrix-Operationen (fehlen in Version3), glew-Bibliothek, um API-Funktionen > 1.1 nutzen zu k�nnen
-// glfw-Bibliothek, um OpenGL plattformunabh�ngig nutzen zu k�nnen (z. B. Fenster �ffnen)
+// glm-Bibliothek für Matrix-Operationen (fehlen in Version3), glew-Bibliothek, um API-Funktionen > 1.1 nutzen zu können
+// glfw-Bibliothek, um OpenGL plattformunabhängig nutzen zu können (z. B. Fenster öffnen)
 #define UEBUNG1 /* feste Rotation */
 // Pflichtteil: Ergebnis zeigen ...
-// Kode zeilenweise erkl�ren. (Orientiert sich an http://www.opengl-tutorial.org/, Evtl. diese Tutorials dort ausf�hren, um zu vertiefen.)
+// Kode zeilenweise erklären. (Orientiert sich an http://www.opengl-tutorial.org/, Evtl. diese Tutorials dort ausführen, um zu vertiefen.)
 // Dort wird glfw in der Version 2 genutzt, wir verwenden die aktuelle Version 3 http://www.glfw.org/
-// Schwarze Linien wg. Shader. Kurz erklaeren, was die Shader machen...
-// Vorgehensweise erklaeren, Jeweils alte cpp-Datei nach CGTutorial.cpp.n kopieren, damit jede Aenderung nachvollziehbar bleibt.
-// (Voraussetzung fuer Support)
+// Schwarze Linien wg. Shader. Kurz erklären, was die Shader machen...
+// Vorgehensweise erklären, Jeweils alte cpp-Datei nach CGTutorial.cpp.n kopieren, damit jede Änderung nachvollziehbar bleibt.
+// (Voraussetzung für Support)
 // Aufgabe Rotation: glm::rotate    (http://glm.g-truc.net/glm.pdf)
 #define UEBUNG2 /* variable Rotation ueber R-Taste */
 // Eventloop, kann man muss man aber nicht in glfw (Alternativ Glut, dort muss man)
 // Aufgabe: Hinweis globale Variable, Taste...
 #define UEBUNG3 /* Kamerasteuerung */
-// Aufgabe drei Unabh�ngige Rotationen, wird zu erstem Teil des Pflichtteils
+// Aufgabe drei unabhängige Rotationen, wird zu erstem Teil des Pflichtteils
 // Hinweis auf andere Kaperasteuerungen ->  http://www.opengl-tutorial.org
 #define UEBUNG4 /* Ausgemaltes Objekt und Z-Buffer */
 // OpenGL-Befehle: http://wiki.delphigl.com/index.php/Hauptseite auf Deutsch!
 // GLEW http://glew.sourceforge.net/
-// Wireframe vs. Solid thematisieren, Z-Buffer wird noetig, um Verdeckungsproblem zu l�sen
+// Wireframe vs. Solid thematisieren, Z-Buffer wird nötig, um Verdeckungsproblem zu lösen
 // http://www.opengl-tutorial.org/beginners-tutorials/tutorial-4-a-colored-cube/
 ///////////////////////////////////////////////////////
 #define UEBUNG5 /* Einlesen eines Objekts */
 // http://www.opengl-tutorial.org/beginners-tutorials/tutorial-7-model-loading/
 // Bessere OBJ-Loader vorhanden, basieren aber auf OpenGL1.1
-// Andere Formate m�glich, z. B. 3ds, s. a. Link am Ende der Seite
-// Wir nehmen Teapot, Anekdote zu Teapot:  von Newell 1975 (hat ber�hmtes Lehrbuch geschrieben) glut, 3dsmax, Toystory, Monster AG, ...
+// Andere Formate möglich, z. B. 3ds, s. a. Link am Ende der Seite
+// Wir nehmen Teapot, Anekdote zu Teapot:  von Newell 1975 (hat berühmtes Lehrbuch geschrieben) glut, 3dsmax, Toystory, Monster AG, ...
 //
-// Vertex Buffer Objects (VBO) (ab 1.5) enthalten alle Daten zu Oberflaechen eines Objekts (Eckpunktkoordinaten, Normalen, Texturkoordinaten -> Uebung 6)
-// koennen in separatem Speicher einer Grafikkarte gehalten werden (haengt vom Modell ab)
-// koennen ueber API-Aufrufe veraendert werden --> glBufferData, glMapBuffer (GL_STATIC_DRAW, um mitzuteilen, dass sich nichts aendern wird)
-// Vertex Array Objects (VAO) (ab 3) kapseln mehrere VBOs eines Objects zwecks Optimierung und einfachrer Benutzung:
+// Vertex Buffer Objects (VBO) (ab 1.5) enthalten alle Daten zu Oberflächen eines Objekts (Eckpunktkoordinaten, Normalen, Texturkoordinaten -> Uebung 6)
+// können in separatem Speicher einer Grafikkarte gehalten werden (hängt vom Modell ab)
+// können über API-Aufrufe verändert werden --> glBufferData, glMapBuffer (GL_STATIC_DRAW, um mitzuteilen, dass sich nichts ändern wird)
+// Vertex Array Objects (VAO) (ab 3) kapseln mehrere VBOs eines Objects zwecks Optimierung und einfacher Benutzung:
 // Beim Zeichnen nur 2 Aufrufe: glBindVertexArray und glDrawArrays
-//#define UEBUNG5TEDDY  /* Nach der Teddy-�bung fuer Uebung6 wieder ausschalten */
+// #define UEBUNG5TEDDY  /* Nach der Teddy-Übung für Uebung6 wieder ausschalten */
 // Alternativ: Teddy wenn die Zeit reicht: google nach teddy chameleon, teapot.obj mit xxx.obj austauschen....
-// Modellieren kann also auch einfach sein, Freies Tool Blender (open Source), Professionelle Werkzeuge Maya, 3dsmax, etc. (nicht gegenstand der LV)
+// Modellieren kann also auch einfach sein, Freies Tool Blender (open Source), Professionelle Werkzeuge Maya, 3dsmax, etc. (nicht Gegenstand der LV)
 #define UEBUNG6 /* Beleuchten, neuer Shader */
-// Teddy-Modell hat keine Normalen, passt nicht zu Shadern, wieder zur Teekanne zurueck.
+// Teddy-Modell hat keine Normalen, passt nicht zu Shadern, wieder zur Teekanne zurück.
 // Shader anschauen, Alter Shader "ColourFragmentShader" setzt Farbe direkt, wird interpoliert ("Gouraud-Shading")
 // "TransformVertexShader" gibt Farben weiter, legt layout der Eingabe-Daten fest, verwendet MVP um Eckpunkte zu transvormieren ("Eine Matrix reicht")
-// Neue Shader koennen mehr (Immer noch nicht, was die Fixed-Function-Pipeline konnte) 
-// Normalen stehen senkrecht auf Oberflaechen, wichtig fuer die Beleuchtung
-// Normalen muessen anders behandelt werden als Eckpunkte, deshalb Trennung von MVP in Model View Projection
-// -> Shader ver�ndern in Uebung 15
+// Neue Shader können mehr (Immer noch nicht, was die Fixed-Function-Pipeline konnte) 
+// Normalen stehen senkrecht auf Oberflächen, wichtig für die Beleuchtung
+// Normalen müssen anders behandelt werden als Eckpunkte, deshalb Trennung von MVP in Model View Projection
+// -> Shader verändern in Uebung 15
 #define UEBUNG7 /* Texturieren */
-// Farbtexturen sind digitale Rasterbilder (andere Texturen in Kombination moeglich "Multi-Texturing" nicht Gegenstand der Uebung -> VL Textur)
-// Imageloader fuer png und jpg nicht in den Bibliotheken enthalten -> SOIL
+// Farbtexturen sind digitale Rasterbilder (andere Texturen in Kombination möglich "Multi-Texturing" nicht Gegenstand der Uebung -> VL Textur)
+// Imageloader für png und jpg nicht in den Bibliotheken enthalten -> SOIL
 // DDS-Format kompatibel zu Texturkompression der Hardware. Wir nehmen aber BMP !
 // s. a.:  http://www.opengl-tutorial.org/beginners-tutorials/tutorial-5-a-textured-cube/, Achtung glfwLoadTexture2D gibt' nicht mehr in glfw-version 3
-// Granularitaet: Textur pro Objekt. kann also gewechselt werden ! --> Uebung 8
+// Granularität: Textur pro Objekt. kann also gewechselt werden ! --> Uebung 8
 // Texturierte Teekanne ist 2. Teil des Pflichtteils 
 ///////////////////////////////////////////////////////
 #define UEBUNG8 /* Mehrere Objekte */
 // Polygone bilden Objekt, Objekte haben eigene Transformationen ("Model"-Matrix) eigene Texturen, etc.
 // VAOs abwechselnd binden, MVP-Matrizen abwechselnd setzen, ggf Texturen abwechselnd binden, OpenGL verwendet jeweils positive Zahlen als
 // Namen, die man sich generieren lassen muss.
-// Model-Matrix fuer jedes Objekt anders, Szenen haben meist hierarchische Struktur, Multiplikationskette von der Wurzel zum Blatt
+// Model-Matrix für jedes Objekt anders, Szenen haben meist hierarchische Struktur, Multiplikationskette von der Wurzel zum Blatt
 // Roboter-Beispiel, um Ketten zu lernen
 #define UEBUNG9 /* Koordinatenachse */
 // Notwendigkeit Koordinatensysteme anzeigen zu lassen... -> drawCS-Funktion mit drei Balkenen
-// Wie erhaelt man langen duennen Balken mit bekannten Geometrien ?
+// Wie erhält man langen dünnen Balken mit bekannten Geometrien ?
 // Aufgabe: Balken (leider mit M, V, P, ... als Parameter) Hinweis ginge auch als Singleton...
 // Skalierungsparameter ruhig ausprobieren.
 // sieht man den Balken im Bauch der Teekanne ?
 #define UEBUNG10 /* Koordinatenkreuz */
-// Aufgabe: Drei Balken, spaeter entsteht die Notwendigkeit Matrizen zu sichern (evtl. Mechanismus von OpenGL1 erwaehnen)
+// Aufgabe: Drei Balken, später entsteht die Notwendigkeit Matrizen zu sichern (evtl. Mechanismus von OpenGL1 erwähnen)
 #define UEBUNG11 /* Ein Robotersegment */
 // Teekanne ausblenden, Kugel zeichnen, Transformationsreihenfolge nochmal thematisieren
 // Aufgabe: -Funktion mit Parameter!
-#define UEBUNG12 /* Drei Robotersegmente uebereinander */
+#define UEBUNG12 /* Drei Robotersegmente übereinander */
 // Aufgabe: statischer Roboter, Unterschied lokales vs. globales Translate
 #define UEBUNG13 /* Rotationen in den Gelenken */
-// Aufgabe Roboter mit Tastensteuerung, Reihenfolge der Transformationen von oben nach unten und umgekehrt mit Stiften erl�utern
+// Aufgabe Roboter mit Tastensteuerung, Reihenfolge der Transformationen von oben nach unten und umgekehrt mit Stiften erläutern
 #define UEBUNG14 /* Lampe am Ende */
 // Uebung 15 im StandardShading pixelshader
-// Hier mal exemplarisch den Pixelshader aendern, um die Beleuchtung ansprechender zu machen
-// Erwaehnen, dass man Parameter wie "MVP" kontrollieren koennte.
-// Hier beginnt die Wellt der Shader-programmierung, die nicht Gegenstand der Uebung ist.
+// Hier mal exemplarisch den Pixelshader ändern, um die Beleuchtung ansprechender zu machen
+// Erwähnen, dass man Parameter wie "MVP" kontrollieren könnte.
+// Hier beginnt die Wellt der Shader-Programmierung, die nicht Gegenstand der Übung ist.
 // Lampe am Ende eines steuerbaren Roboters ist dritter Teil des Pflichtteils
 // (5 Punkte: 3 Rotationen, Teekanne, texturiert, Roboter, Licht am Ende) 
 
@@ -113,6 +113,7 @@ void error_callback(int error, const char* description)
 {
 	fputs(description, stderr);
 }
+
 #ifdef UEBUNG2
 #ifdef UEBUNG3
 	float anglex = 0.0;
@@ -128,7 +129,7 @@ void error_callback(int error, const char* description)
 	float angle2 = 0.0;
 	float angle3 = 0.0;
 #endif
-	
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	switch (key)
@@ -137,6 +138,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glfwSetWindowShouldClose(window, GL_TRUE);
 		break;
 #ifdef UEBUNG2
+// Teekanne kann mit Tasten rotiert werden
 #ifdef UEBUNG3
 	case GLFW_KEY_X:
 		anglex += 5.0;
@@ -152,6 +154,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		angle += 5.0;
 		break;
 #endif
+// Robotersegmente können rotiert werden
 #ifdef UEBUNG13
 	case GLFW_KEY_A:
 		angle0 += 5.0;
@@ -218,6 +221,7 @@ void drawCS()
 }
 #endif
 
+// ein Robotersegment wird gezeichnet
 #ifdef UEBUNG11
 void drawSeg(float height)
 {
@@ -257,10 +261,10 @@ int main(void)
 	}
 
 	// Make the window's context current (wird nicht automatisch gemacht)
-    glfwMakeContextCurrent(window);
+    	glfwMakeContextCurrent(window);
 
 	// Initialize GLEW
-	// GLEW erm�glicht Zugriff auf OpenGL-API > 1.1
+	// GLEW ermöglicht Zugriff auf OpenGL-API > 1.1
 	glewExperimental = true; // Needed for core profile
 
 	if (glewInit() != GLEW_OK)
@@ -275,11 +279,13 @@ int main(void)
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
+// Teekanne wird ausgemalt
 #ifdef UEBUNG4
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 #endif
 
+// Beleuchtung der Teekanne
 #ifdef UEBUNG6
 	programID = LoadShaders("StandardShading.vertexshader", "StandardShading.fragmentshader");
 #else
@@ -328,6 +334,8 @@ int main(void)
 		0,
 		(void*)0);
 #endif
+	
+// Texturierung der Teekanne
 #ifdef UEBUNG7
 	GLuint Texture = loadBMP_custom("mandrill.bmp");
 
@@ -345,6 +353,8 @@ int main(void)
 		(void*)0);
 #endif
 #endif
+	
+// Lampe beleuchtet Teekanne und Robotersegmente
 #ifdef UEBUNG14
 	glm::mat4 lightTraf(1.0f);
 #endif
@@ -360,7 +370,7 @@ int main(void)
 #endif
 			
 
-		// Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+		// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 		Projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
 		
 		// Camera matrix
@@ -383,6 +393,7 @@ int main(void)
 		Model = glm::rotate(Model, 30.0f, glm::vec3(0.0,1.0,0.0));
 #endif
 #endif
+		
 #ifdef UEBUNG8
 		glm::mat4 Save = Model;
 		Model = glm::translate(Model, glm::vec3(1.5, 0, 0));
@@ -400,12 +411,14 @@ int main(void)
 #endif
 		glUniform3f(glGetUniformLocation(programID, "LightPosition_worldspace"), lightPos.x, lightPos.y, lightPos.z);
 #endif
+		
 #ifdef UEBUNG7
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Texture);
 
 		glUniform1i(glGetUniformLocation(programID, "myTextureSample"), 0);
 #endif
+		
 #ifdef UEBUNG5
 		glBindVertexArray(VertexArrayIDTeapot);
 		glDrawArrays(GL_TRIANGLES, 0, vertices.size());
@@ -422,14 +435,17 @@ int main(void)
 #ifdef UEBUNG8
 		Model = Save;
 		Model = glm::scale(Model, glm::vec3(0.5, 0.5, 0.5));
+// Robotersegment 1 wird gezeichnet und kann rotiert werden
 #ifdef UEBUNG11
 		Model = glm::rotate(Model, angle0, glm::vec3(0.0, 0.0, 1.0));
 		Model = glm::rotate(Model, angle1, glm::vec3(0.0, 1.0, 0.0));
 		drawSeg(1.0);
+// Robotersegment 2 wird gezeichnet und kann rotiert werden
 #ifdef UEBUNG12
 		Model = glm::translate(Model, glm::vec3(0, 1.0, 0));
 		Model = glm::rotate(Model, angle2, glm::vec3(0.0, 0.0, 1.0));
 		drawSeg(0.8);
+// Robotersegment 3 wird gezeichnet und kann rotiert werden
 		Model = glm::translate(Model, glm::vec3(0, 0.8, 0));
 #ifdef UEBUNG13
 		Model = glm::rotate(Model, angle3, glm::vec3(0.0, 0.0, 1.0));
